@@ -30,7 +30,7 @@
 
         // --- CONFIGURACIÓN CRÍTICA ---
         // ¡PEGA AQUÍ TU NUEVA URL DE GOOGLE APPS SCRIPT!
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxOX_HuZsVygAmUren054hX_ss0kd4xIXXIPVERRCiQ7PDdPvaLQh3tLqEEayQ1e6yV/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQJ1zo3U9aDVm_9k1BvfExRc7CKRw_kC9uXLgzwuMP53CEwT7ydQwWB1f6JFU5pF9w/exec';
 
         // --- CONFIGURACIÓN LOGÍSTICA ---
         const DESTINOS = {
@@ -75,7 +75,7 @@
             const [inventario, setInventario] = useState([]);
             const [cargandoInventario, setCargandoInventario] = useState(false);
 
-            // --- 1. AUTENTICACIÓN ---
+            // --- 1. AUTENTICACIÓN (Actualizada para usar GET y evitar CORS) ---
             const handleLogin = async (e) => {
                 e.preventDefault();
                 if (!pin) return;
@@ -84,13 +84,11 @@
                 setStatusMessage('Conectando a Sheets...');
 
                 try {
-                    // ¡AQUÍ ESTÁ EL HACK DEL CORS! text/plain en lugar de application/json
-                    const response = await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'text/plain;charset=utf-8', 
-                        },
-                        body: JSON.stringify({ action: 'get_inventory', pin: pin })
+                    // Ahora usamos un GET simple enviando el pin por la URL
+                    // Esto evita la política de redirección de CORS de Google en POST iniciales
+                    const response = await fetch(`${GOOGLE_SCRIPT_URL}?pin=${pin}`, {
+                        method: 'GET',
+                        mode: 'cors'
                     });
                     
                     const result = await response.json();
@@ -113,10 +111,9 @@
             const recargarInventario = async () => {
                 setCargandoInventario(true);
                 try {
-                    const response = await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ action: 'get_inventory', pin: pin })
+                    const response = await fetch(`${GOOGLE_SCRIPT_URL}?pin=${pin}`, {
+                        method: 'GET',
+                        mode: 'cors'
                     });
                     const result = await response.json();
                     if (result.status === 'success') {
